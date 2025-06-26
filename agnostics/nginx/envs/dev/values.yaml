@@ -1,7 +1,11 @@
 controller:
   publishService:
     enabled: "true" # This is required for external-dns to work
+
+  hostPort:
+    enabled: true
   service:
-    annotations:
-          service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-          service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
+    type: ClusterIP
+    # annotations:
+    #       service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    #       service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/healthz"
