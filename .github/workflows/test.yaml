@@ -53,9 +53,9 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v --color=yes
+          python -m pytest -v -s --color=yes
 
-      - name: Get logs, including on failure
+      - name: Get ArgoCD logs, including on failure
         if: always()
         run: |
           echo "::group::argocd-server"
@@ -69,6 +69,22 @@ jobs:
             echo "::group::argocd $kind"
             kubectl describe $kind -A
             echo "::endgroup::"
+          done
+
+      - name: Get main K8s resources, including on failure
+        if: always()
+        run: |
+          # Ignore errors since this is for debugging
+          set +e
+          for namespace in $(kubectl get namespace -ojsonpath='{.items[*].metadata.name}'); do
+            echo "***** $namespace *****"
+            for kind in daemonset deployment statefulset ingress service pod; do
+              for name in $(kubectl -n$namespace get $kind -ojsonpath='{.items[*].metadata.name}'); do
+                echo "::group::$kind/$name"
+                kubectl -n$namespace describe $kind/$name
+                echo "::endgroup::"
+              done
+            done
           done
 
   # Set a single status check for the whole workflow, so that we can use it in a

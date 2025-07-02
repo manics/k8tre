@@ -19,6 +19,7 @@ def test_web_ingress_keycloak():
         verify=False,
         allow_redirects=False,
     )
+
     assert r.status_code == 302
     assert r.headers["Location"] == f"https://{KEYCLOAK_HOST}/admin/"
 
@@ -45,6 +46,7 @@ def test_web_ingress_jupyterhub():
         verify=False,
         allow_redirects=False,
     )
+
     assert r.status_code == 302
     assert r.headers["Location"] == "/hub/"
 
