@@ -19,3 +19,6 @@ ingress:
     - secretName: keycloak-k8tre-tls
       hosts:
         - keycloak.dev.k8tre.internal
+
+logging:
+  level: DEBUG
