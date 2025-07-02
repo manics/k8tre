@@ -56,13 +56,13 @@ singleuser:
 ingress:
   enabled: true
   hosts:
-    - jupyter.dev.k8tre.internal
+    - jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk
   ingressClassName: nginx
   annotations:
     external-dns.alpha.kubernetes.io/hostname: jupyter.dev.k8tre.internal
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   tls:
     - hosts:
-        - jupyter.dev.k8tre.internal
+        - jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk
       secretName: jupyter-k8tre-tls
 

@@ -18,3 +18,17 @@ patches:
     target:
       kind: Certificate
       name: jupyter-k8tre-tls
+
+  # Change host for JupyterHub
+  # TODO: This doesn't work, need to override in value.yaml instead 😢
+  - target:
+      kind: Ingress
+      name: jupyterhub
+      namespace: jupyterhub
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk.THIS.DOESNT.WORK
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk.THIS.DOESNT.WORK
