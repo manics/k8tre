@@ -397,7 +397,7 @@ class CISecretsManager:
 
 
 def main(
-    context: Annotated[str, typer.Option(help="Kubernetes context to use")],
+    context: Annotated[str, typer.Option(help="Kubernetes context to use")] = "default",
     namespace: Annotated[
         str, typer.Option(help="Namespace to create secrets in (default: secret-store)")
     ] = "secret-store",

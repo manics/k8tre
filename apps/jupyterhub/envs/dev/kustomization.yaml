@@ -8,9 +8,27 @@ helmCharts:
     releaseName: jupyterhub
     namespace: jupyterhub
     valuesFile: values.yaml
-      
+
+  - name: guacamole
+    repo: https://www.manicstreetpreacher.co.uk/helm-guacamole/
+    version: 0.1.2
+    releaseName: guacamole
+    namespace: jupyterhub
+    valuesFile: guacamole.yaml
+
+  - name: generic-webservice
+    repo: https://www.manicstreetpreacher.co.uk/helm-generic-webservice/
+    version: 0.1.5
+    releaseName: guacamolehandler
+    namespace: jupyterhub
+    valuesFile: guacamolehandler.yaml
+
 resources:
   - ../../base
+  - certificate-guacamole.yaml
+  - guacamole-json-secret.yaml
+  - jupyterhub-secret.yaml
+  - netpol-singleuser.yaml
   # - netpol_singleuser_world.yaml
 
 patches:
@@ -28,7 +46,14 @@ patches:
     patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk.THIS.DOESNT.WORK
+        value: jupyter.k8tre.internal.THIS.DOESNT.WORK
       - op: replace
         path: /spec/tls/0/hosts/0
-        value: jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk.THIS.DOESNT.WORK
+        value: jupyter.k8tre.internal.THIS.DOESNT.WORK
+
+
+configMapGenerator:
+  - name: jupyterhub-extraconfig
+    files:
+      # Kustomize will create a ConfigMap with the contents of this file
+      - jupyterhub_extraconfig.py
