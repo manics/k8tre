@@ -22,8 +22,7 @@ jobs:
     timeout-minutes: 20
 
     env:
-      JUPYTERHUB_HOST: jupyter.k8tre.internal
-      KEYCLOAK_HOST: keycloak.k8tre.internal
+      K8TRE_DOMAIN: dev.k8tre.internal
 
     steps:
 
@@ -49,11 +48,12 @@ jobs:
 
       - name: Modify hosts to resolve k8tre.internal URLs
         run: |
+          K8TRE_SUBDOMAINS="jupyter.$K8TRE_DOMAIN keycloak.$K8TRE_DOMAIN"
           h=$(grep "$(hostname -i) " /etc/hosts)
           if [ -n "$h" ]; then
-            sudo sed -i -re "s/$h/$h $JUPYTERHUB_HOST $KEYCLOAK_HOST/" /etc/hosts
+            sudo sed -i -re "s/$h/$h $K8TRE_SUBDOMAINS/" /etc/hosts
           else
-            echo $(hostname -i) $JUPYTERHUB_HOST $KEYCLOAK_HOST | sudo tee -a /etc/hosts
+            echo $(hostname -i) $K8TRE_SUBDOMAINS | sudo tee -a /etc/hosts
           fi
           cat /etc/hosts
 
