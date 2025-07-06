@@ -26,6 +26,12 @@ jobs:
       KEYCLOAK_HOST: keycloak.k8tre.internal
 
     steps:
+
+      - name: Free up disk space on GitHub runner
+        uses: manics/action-free-disk-space@1.0.0
+        with:
+          desired-space: 40000
+
       - uses: actions/checkout@v4
 
       - name: Install uv
