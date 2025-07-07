@@ -43,6 +43,8 @@ hub:
       validate_server_cert: false
     JupyterHub:
       authenticator_class: generic-oauth
+      # Makes testing easier
+      default_url: /hub/home
 proxy:
   service:
     type: ClusterIP
