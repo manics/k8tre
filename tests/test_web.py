@@ -50,9 +50,19 @@ def test_web_ingress_jupyterhub():
     assert r.status_code == 302
     assert r.headers["Location"] == "/hub/"
 
-    # Which should redirect to /hub/login?next=%2Fhub%2F
+    # Which should redirect to /hub/home (JupyterHub.default_url)
     r = requests.get(
         f"https://{INGRESS_HOST}/hub/",
+        headers={"Host": JUPYTERHUB_HOST},
+        verify=False,
+        allow_redirects=False,
+    )
+    assert r.status_code == 302
+    assert r.headers["Location"] == "/hub/home"
+
+    # Which should redirect to /hub/login?next=%2Fhub%2F
+    r = requests.get(
+        f"https://{INGRESS_HOST}/hub/home",
         headers={"Host": JUPYTERHUB_HOST},
         verify=False,
         allow_redirects=False,
