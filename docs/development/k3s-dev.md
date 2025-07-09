@@ -201,6 +201,8 @@ KEYCLOAK_PASSWORD=$(kubectl -nkeycloak get secret keycloak-admin-secret -o jsonp
 sleep 1m
 
 ci/ci-setup-keycloak.py \
+  --keycloak-url=https://keycloak.k8tre-dev.trevolution.dev.hic.dundee.ac.uk \
+  --jupyterhub-url=https://jupyter.k8tre-dev.trevolution.dev.hic.dundee.ac.uk \
   --keycloak-admin=admin \
   --keycloak-password="$KEYCLOAK_PASSWORD" \
   --verify=false
