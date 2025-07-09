@@ -35,18 +35,18 @@ parser.add_argument(
 )
 parser.add_argument(
     "--admin-role",
-    default="jupyterhub-admins",
-    help="Name of JupyterHub Keycloak admin role",
+    default="k8tre-admins",
+    help="Name of K8TRE Keycloak admin role",
 )
 parser.add_argument(
     "--user-role",
-    default="jupyterhub-users",
-    help="Name of JupyterHub Keycloak user role",
+    default="k8tre-users",
+    help="Name of K8TRE Keycloak user role",
 )
 parser.add_argument(
     "--scope-name",
-    default="jupyterhub-roles",
-    help="Custom scope name to use for JupyterHub Keycloak roles",
+    default="k8tre-roles",
+    help="Custom scope name to use for K8TRE Keycloak roles",
 )
 parser.add_argument(
     "--verify",
@@ -125,44 +125,54 @@ else:
     cid = keycloak_admin.create_client(client_payload)
 # print(keycloak_admin.get_client(cid))
 
-# Create some client specific roles (you could also create realm roles that can be used by multiple clients)
-client_role_admins_payload = {
+# Create some roles that can be used by multiple clients
+role_admins_payload = {
     "name": args.admin_role,
-    "description": "JupyterHub admins",
+    "description": "K8TRE admins",
 }
-output(f"Creating/updating client role {args.admin_role}", client_role_admins_payload)
-keycloak_admin.create_client_role(cid, client_role_admins_payload, skip_exists=True)
-client_role_users_payload = {
-    "name": args.user_role,
-    "description": "JupyterHub users",
-}
-output(f"Creating/updating client role {args.user_role}", client_role_users_payload)
-keycloak_admin.create_client_role(cid, client_role_users_payload, skip_exists=True)
+# output(f"Creating/updating client role {args.admin_role}", role_admins_payload)
+# keycloak_admin.create_client_role(cid, role_admins_payload, skip_exists=True)
+output(f"Creating/updating realm role {args.admin_role}", role_admins_payload)
+keycloak_admin.create_realm_role(role_admins_payload, skip_exists=True)
 
-# Create or update a custom scope called "jupyterhub-groups" that maps Keycloak client Roles
+role_users_payload = {
+    "name": args.user_role,
+    "description": "K8TRE users",
+}
+# output(f"Creating/updating client role {args.user_role}", role_users_payload)
+# keycloak_admin.create_client_role(cid, role_users_payload, skip_exists=True)
+output(f"Creating/updating realm role {args.user_role}", role_users_payload)
+keycloak_admin.create_realm_role(role_users_payload, skip_exists=True)
+
+# Create or update a custom scope called "k8tre-groups" that maps Keycloak Roles
 scope = {
     "name": args.scope_name,
-    "description": "JupyterHub Keycloak roles",
+    "description": "K8TRE Keycloak roles",
     "protocol": "openid-connect",
     "protocolMappers": [
         {
             "name": args.scope_name,
             "protocol": "openid-connect",
-            # Map client roles:
-            "protocolMapper": "oidc-usermodel-client-role-mapper",
+
+            # # Map client roles:
+            # "protocolMapper": "oidc-usermodel-client-role-mapper",
+
             # Map realm roles:
-            # "protocolMapper": "oidc-usermodel-realm-role-mapper",
-            # Map Keycloak groups:
+            "protocolMapper": "oidc-usermodel-realm-role-mapper",
+
+            # # Map Keycloak groups:
             # "protocolMapper": "oidc-group-membership-mapper",
+
             "config": {
                 "multivalued": "true",
                 # Include in the userinfo response
                 "userinfo.token.claim": "true",
                 # The userinfo field
-                "claim.name": "jupyterhub.roles",
+                "claim.name": "k8tre.roles",
                 "jsonType.label": "String",
-                # Only return client scopes for jupyterhub
-                "usermodel.clientRoleMapping.clientId": args.client_name,
+
+                # # Only return client scopes for jupyterhub
+                # "usermodel.clientRoleMapping.clientId": args.client_name,
             },
         }
     ],
@@ -174,17 +184,21 @@ keycloak_admin.update_client_scope(scope_id, scope)
 # Add scope to client
 keycloak_admin.add_client_optional_client_scope(cid, scope_id, {})
 
-# Assign users to client roles
-client_admin_role = keycloak_admin.get_client_role(cid, args.admin_role)
-client_user_role = keycloak_admin.get_client_role(cid, args.user_role)
+# Assign users to roles
+# admin_role = keycloak_admin.get_client_role(cid, args.admin_role)
+# user_role = keycloak_admin.get_client_role(cid, args.user_role)
+admin_role = keycloak_admin.get_realm_role(args.admin_role)
+user_role = keycloak_admin.get_realm_role(args.user_role)
 
 admin_uid = keycloak_admin.get_user_id(args.keycloak_admin)
 output(
     f"Assigning roles to admin {args.keycloak_admin} ({admin_uid})",
-    [client_admin_role, client_user_role],
+    [admin_role, user_role],
 )
-keycloak_admin.assign_client_role(admin_uid, cid, [client_admin_role, client_user_role])
+# keycloak_admin.assign_client_role(admin_uid, cid, [admin_role, user_role])
+keycloak_admin.assign_realm_roles(admin_uid, [admin_role, user_role])
 
 user_uid = keycloak_admin.get_user_id(args.user)
-output(f"Assigning roles to user {args.user} ({user_uid})", client_user_role)
-keycloak_admin.assign_client_role(user_uid, cid, [client_user_role])
+output(f"Assigning roles to user {args.user} ({user_uid})", user_role)
+# keycloak_admin.assign_client_role(user_uid, cid, [user_role])
+keycloak_admin.assign_realm_roles(user_uid, [user_role])

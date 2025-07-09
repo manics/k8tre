@@ -24,21 +24,21 @@ hub:
       scope:
         - openid
         # The custom scope name
-        - jupyterhub-roles
+        - k8tre-roles
       login_service: keycloak
       username_key: preferred_username
       userdata_params:
         state: state
       # The location of the custom Keycloak field in the userdata response
-      auth_state_groups_key: oauth_user.jupyterhub.roles
+      auth_state_groups_key: oauth_user.k8tre.roles
       # JupyterHub defers to Keycloak for all group memberships
       manage_groups: true
       allowed_groups:
         # The Keycloak role for JupyterHub users
-        - jupyterhub-users
+        - k8tre-users
       admin_groups:
         # The Keycloak role for JupyterHub admins
-        - jupyterhub-admins
+        - k8tre-admins
       # For CI testing only with self-signed certificates!
       validate_server_cert: false
     JupyterHub:
