@@ -115,7 +115,7 @@ class KubeSpawnerGuac(KubeSpawner):
 
 # TODO: We should make require TRE projects to have a prefix to disinguish them from JupyterHub roles
 # project_group_re = r"^project-[a-z0-9-]+$"
-project_group_re = r"^.+$"
+project_group_re = r"^(k8tre|project)-[a-z0-9-]+$"
 # egress_admin_groupname = "egress-admins"
 # user_home_pvcname = "user-home-directories"
 # user_egress_pvcname = "user-egress-directories"
@@ -158,8 +158,8 @@ async def custom_options_form(spawner):
 
             spawner.profile_list.append(
                 {
-                    "display_name": f"{groupname}-mate",
-                    "slug": f"{groupname}-mate",
+                    "display_name": f"{groupname} mate (RDP)",
+                    "slug": f"{groupname}.mate-rdp",
                     "kubespawner_override": {
                         **common_overrides,
                         "desktop_connection": "rdp",
@@ -172,8 +172,8 @@ async def custom_options_form(spawner):
             )
             spawner.profile_list.append(
                 {
-                    "display_name": f"{groupname}-mate (VNC)",
-                    "slug": f"{groupname}-mate-vnc",
+                    "display_name": f"{groupname} mate (VNC)",
+                    "slug": f"{groupname}.mate-vnc",
                     "kubespawner_override": {
                         **common_overrides,
                         "desktop_connection": "vnc",
@@ -183,19 +183,19 @@ async def custom_options_form(spawner):
                     },
                 }
             )
-            # spawner.profile_list.append(
-            #     {
-            #         "display_name": f"{groupname}-winxp",
-            #         "slug": f"{groupname}-winxp",
-            #         "kubespawner_override": {
-            #             **common_overrides,
-            #             "desktop_connection": "vnc",
-            #             "desktop_image": "ghcr.io/manics/jupyter-desktop-winxp:latest",
-            #             "desktop_username": "ubuntu",
-            #             "desktop_command": ["start-tigervnc.sh"],
-            #         },
-            #     }
-            # )
+            spawner.profile_list.append(
+                {
+                    "display_name": f"{groupname} winxp (RDP)",
+                    "slug": f"{groupname}.winxp-rdp",
+                    "kubespawner_override": {
+                        **common_overrides,
+                        "desktop_connection": "rdp",
+                        "desktop_image": "ghcr.io/manics/jupyter-desktop-winxp:latest",
+                        "desktop_username": "jovyan",
+                        "desktop_command": ["start-xrdp.sh"],
+                    },
+                }
+            )
 
     #         if groupname == egress_admin_groupname:
     #             spawner.log.info(f"Adding {groupname} readonly storage for {username}.")
