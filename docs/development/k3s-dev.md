@@ -197,12 +197,13 @@ kubectl get crd
 ```bash
 # Get the initial admin password
 KEYCLOAK_PASSWORD=$(kubectl -nkeycloak get secret keycloak-admin-secret -o jsonpath='{.data.admin-password}' | base64 -d)
+# Wait a minute to ensure Keycloak is actually ready
+sleep 1m
 
 ci/ci-setup-keycloak.py \
   --keycloak-admin=admin \
   --keycloak-password="$KEYCLOAK_PASSWORD" \
-  --verify=false \
-  --retry=5
+  --verify=false
 ```
 
 
