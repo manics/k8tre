@@ -41,6 +41,13 @@ mkdir -p ~/.kube
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kube/config
 ```
 
+Replace the k3s symlinked kubectl with a real kubectl
+```bash
+sudo rm /usr/local/bin/kubectl
+sudo curl -L "https://dl.k8s.io/release/v1.33.2/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+sudo chmod a+x /usr/local/bin/kubectl
+```
+
 ### Setup Cilium CNI
 
 https://docs.cilium.io/en/stable/installation/k3s/
