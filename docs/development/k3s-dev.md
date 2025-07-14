@@ -155,6 +155,12 @@ List CRDs
 kubectl get crd
 ```
 
+## Install uv (Python) so we can run some setup scripts
+
+```bash
+curl -LsSf https://astral.sh/uv/0.7.21/install.sh | sudo UV_INSTALL_DIR="/usr/local/bin" sh
+```
+
 ## Create secrets for use by External Secrets Operator
 
 ```bash
