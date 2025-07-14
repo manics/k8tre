@@ -72,7 +72,7 @@ Wait for Cilium to be ready, and optionally check Cilium it's working.
 ```
 cilium status --wait
 # TODO: Remove this, takes several minutes to run
-cilium connectivity test
+#cilium connectivity test
 ```
 
 ### 3.2 Enable Required Add-ons
