@@ -185,13 +185,16 @@ async def custom_options_form(spawner):
             )
             spawner.profile_list.append(
                 {
-                    "display_name": f"{groupname} winxp (RDP)",
-                    "slug": f"{groupname}.winxp-rdp",
+                    # "display_name": f"{groupname} winxp (RDP)",
+                    "display_name": f"{groupname} Example Apps (RDP)",
+                    # "slug": f"{groupname}.winxp-rdp",
+                    "slug": f"{groupname}.example-apps-rdp",
                     "kubespawner_override": {
                         **common_overrides,
                         "desktop_connection": "rdp",
-                        "desktop_image": "ghcr.io/manics/jupyter-desktop-winxp:latest",
-                        "desktop_username": "jovyan",
+                        # "desktop_image": "ghcr.io/manics/jupyter-desktop-winxp:latest",
+                        "desktop_image": "ghcr.io/manics/ubuntu-mate-vncrdp-example-apps:main",
+                        "desktop_username": "ubuntu",
                         "desktop_command": ["start-xrdp.sh"],
                     },
                 }
