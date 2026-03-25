@@ -19,6 +19,7 @@
       external-dns.alpha.kubernetes.io/hostname: "*.${DOMAIN}"
       external-dns.alpha.kubernetes.io/internal-hostname: "*.internal-test.${DOMAIN}"
 
-- op: add
-  path: /spec/gatewayClassName
-  value: aws-alb
+# Doesn't work
+# - op: add
+#   path: /spec/gatewayClassName
+#   value: aws-alb
