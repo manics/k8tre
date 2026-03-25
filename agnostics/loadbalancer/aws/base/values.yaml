@@ -12,3 +12,8 @@ vpcTags:
   Name: ${CLUSTER_NAME}
 
 logLevel: debug
+
+controllerConfig:
+  featureGates:
+    ALBGatewayAPI: true
+    # NLBGatewayAPI: true

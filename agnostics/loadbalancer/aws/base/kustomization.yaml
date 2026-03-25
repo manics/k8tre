@@ -8,6 +8,13 @@ resources:
 # - https://raw.githubusercontent.com/aws/eks-charts/refs/tags/v0.0.226/stable/aws-load-balancer-controller/crds/crds.yaml
 # - https://raw.githubusercontent.com/aws/eks-charts/refs/tags/v0.0.226/stable/aws-load-balancer-controller/crds/gateway-crds.yaml
 
+# For Gateway support
+# https://kubernetes-sigs.github.io/aws-load-balancer-controller/v3.1/guide/gateway/gateway/
+# https://aws.amazon.com/blogs/networking-and-content-delivery/aws-load-balancer-controller-adds-general-availability-support-for-kubernetes-gateway-api/
+  - https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/refs/tags/v3.1.0/config/crd/gateway/gateway-crds.yaml
+  - alb-gatewayclass.yaml
+
+
 helmCharts:
   - name: aws-load-balancer-controller
     repo: https://aws.github.io/eks-charts
@@ -15,3 +22,4 @@ helmCharts:
     releaseName: aws-loadbalancer
     namespace: loadbalancer
     valuesFile: values.yaml
+
