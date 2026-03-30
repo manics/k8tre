@@ -1,0 +1,26 @@
+# https://docs.cilium.io/en/v1.19/network/servicemesh/gateway-api/parameterized-gatewayclass/
+# ClusterIP isn't supported, only NodePort and LoadBalancer
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: nodeport-gateway-class
+spec:
+  controllerName: io.cilium/gateway-controller
+  description: Cilium NodePort GatewayClass
+  parametersRef:
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: nodeport-gateway-config
+    namespace: gateway
+
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumGatewayClassConfig
+metadata:
+  name: nodeport-gateway-config
+  namespace: gateway
+spec:
+  service:
+    type: NodePort

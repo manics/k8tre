@@ -3,6 +3,12 @@ kind: Kustomization
 
 resources:
   - ../../base
+  - gateway-class-nodeport.yaml
+  - internal-gateway-ingress.yaml
+
+# Note internal-gateway will incorrectly show the status 'Progressing' until
+# https://github.com/cilium/cilium/issues/42786#issuecomment-3652940248
+# is fixed
 
 patches:
   - path: gateway-infrastructure-patch.yaml

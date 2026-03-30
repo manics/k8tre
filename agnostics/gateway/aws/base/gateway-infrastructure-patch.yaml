@@ -7,19 +7,20 @@
 # - When Envoy responded, rather than routing the traffic back out to the NLB to complete the TCP loop, Envoy replied natively via the host network to the pod's IP directly.
 # - The backend pod received a reply from the Node's IP (10.0.3.5) instead of the NLB IP (172.x.x.x), skipping the Connection Tracking tables and failing Cilium validation (POLICY_DENIED).
 
-- op: add
-  path: /spec/infrastructure
-  value:
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-type: "external"
-      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
-      service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
-      service.beta.kubernetes.io/aws-load-balancer-attributes: "load_balancing.cross_zone.enabled=true"
-      service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=false"
-      external-dns.alpha.kubernetes.io/hostname: "*.${DOMAIN}"
-      external-dns.alpha.kubernetes.io/internal-hostname: "*.internal-test.${DOMAIN}"
-
-# Doesn't work
 # - op: add
-#   path: /spec/gatewayClassName
-#   value: aws-alb
+#   path: /spec/infrastructure
+#   value:
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-type: "external"
+#       service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+#       service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+#       service.beta.kubernetes.io/aws-load-balancer-attributes: "load_balancing.cross_zone.enabled=true"
+#       service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=false"
+#       external-dns.alpha.kubernetes.io/hostname: "*.${DOMAIN}"
+#       external-dns.alpha.kubernetes.io/internal-hostname: "*.internal-test.${DOMAIN}"
+
+- op: add
+  path: /spec/gatewayClassName
+  # Doesn't work
+  # value: aws-alb
+  value: nodeport-gateway-class
