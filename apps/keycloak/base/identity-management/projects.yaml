@@ -53,7 +53,7 @@ spec:
       description: "Python data analysis for diabetes"
       slug: "diabetes-ws1"
       kubespawner_override:
-        image: "quay.io/jupyterhub/k8s-singleuser-sample:3.3.8"
+        image: "docker.io/manics/k8tre-kerberos-sql-jupyterlab@sha256:9cda83ab29fac9684fa87a51573ce113ea69b1085fbfce221e80c3492f9a278b"
         env:
           PROJECT_NAME: "diabetes"
           WORKSPACE: "/diabetes/ws1"
