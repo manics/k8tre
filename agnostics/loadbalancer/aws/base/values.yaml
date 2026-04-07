@@ -11,4 +11,4 @@ region: ${REGION}
 vpcTags:
   Name: ${CLUSTER_NAME}
 
-# logLevel: debug
+logLevel: debug
