@@ -1,0 +1,127 @@
+---
+# https://docs.cilium.io/en/latest/security/policy/kubernetes/#example-add-health-endpoint
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: cilium-health-checks
+spec:
+  endpointSelector:
+    matchLabels:
+      "reserved:health": ""
+  ingress:
+    - fromEntities:
+        - remote-node
+  egress:
+    - toEntities:
+        - remote-node
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-system-dns
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s-app: kube-dns
+  egress:
+    - toCIDRSet:
+        # Private Route53 zone resolvers
+        - cidr: "10.0.0.0/8"
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - kube-apiserver
+  ingress:
+    - fromEntities:
+        - cluster
+        - host
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-egress
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      # app.kubernetes.io/name: external-secrets-cert-controller
+
+  egress:
+    - toCIDRSet:
+        # Private Route53 zone resolvers
+        - cidr: "10.0.0.0/8"
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - kube-apiserver
+  ingress:
+    - fromEntities:
+        - cluster
+        - host
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+
+# ---
+# apiVersion: cilium.io/v2
+# kind: CiliumClusterwideNetworkPolicy
+# metadata:
+#   name: k8tre-default-network-policy
+# spec:
+#   # Every pod except project-namespaces
+#   # This is in addition to CiliumClusterwideNetworkPolicy/allow-pod-to-pod-via-gateway
+#   description: Allow access to VPC and local domains
+#   endpointSelector:
+#     matchExpressions:
+#       - key: io.cilium.k8s.namespace.labels.k8tre.io/resource-type
+#         operator: NotIn
+#         values:
+#           - project-namespace
+
+#   egress:
+#     - toCIDR:
+#         # TODO: For now allow all traffic to VPC
+#         - 10.0.0.0/16
+#     - toFQDNs:
+#         # TODO: narrow this down
+#         - matchPattern: "**.amazonaws.com"
+#         - matchPattern: "**.${DOMAIN}"
+#     # Need to force DNS via Cilium
+#     # https://docs.cilium.io/en/stable/security/policy/language/#dns-obtaining-data
+#     - toEndpoints:
+#         - matchLabels:
+#             "k8s:io.kubernetes.pod.namespace": kube-system
+#             "k8s:k8s-app": kube-dns
+#       toPorts:
+#         - ports:
+#             - port: "53"
+#               protocol: ANY
+#           rules:
+#             dns:
+#               # TODO: narrow this down
+#               - matchPattern: "*"
+#     - toEntities:
+#         - cluster
+#   ingress:
+#     - fromEntities:
+#         - cluster

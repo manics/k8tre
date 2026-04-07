@@ -1,6 +1,6 @@
 # Default Network Policy for K8TRE
 
-Configure a default Cilium cluster-wide network policy.
+Default Cilium network policies for AWS deployments.
 
 ## Structure
 

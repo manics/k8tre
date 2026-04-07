@@ -1,0 +1,30 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loadbalancer-egress
+  namespace: loadbalancer
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: aws-load-balancer-controller
+  egress:
+    - toFQDNs:
+        - matchPattern: "**.amazonaws.com"
+    - toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            "k8s:io.kubernetes.pod.namespace": kube-system
+            "k8s:k8s-app": kube-dns
+    - toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"

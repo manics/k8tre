@@ -8,6 +8,8 @@ resources:
 # - https://raw.githubusercontent.com/aws/eks-charts/refs/tags/v0.0.226/stable/aws-load-balancer-controller/crds/crds.yaml
 # - https://raw.githubusercontent.com/aws/eks-charts/refs/tags/v0.0.226/stable/aws-load-balancer-controller/crds/gateway-crds.yaml
 
+  - networkpolicy.yaml
+
 helmCharts:
   - name: aws-load-balancer-controller
     repo: https://aws.github.io/eks-charts
