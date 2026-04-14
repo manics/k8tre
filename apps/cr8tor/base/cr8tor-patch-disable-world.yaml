@@ -10,6 +10,8 @@ spec:
           command: ["sh", "-c"]
           args:
             - >-
-              sed -i '\|# Allow external/internet access|,+2d' 
+              sed -i '\|# Allow external/internet access|,+2c\    # Allow access to internal ALB\n    - toFQDNs:\n        - matchPattern: "*.${DOMAIN}"\n      toPorts:\n        - ports:\n            - port: "443"\n              protocol: TCP\n            - port: "80"\n              protocol: TCP'
+              /app/.venv/lib/python3.12/site-packages/cr8tor/services/network_policy_manager.py
+              && sed -i '\|# Allow DNS resolution|,+10c\    # Allow DNS resolution\n    - toEndpoints:\n        - matchLabels:\n            k8s:io.kubernetes.pod.namespace: kube-system\n            k8s-app: kube-dns\n      toPorts:\n        - ports:\n            - port: "53"\n              protocol: ANY\n          rules:\n            dns:\n              - matchPattern: "*"'
               /app/.venv/lib/python3.12/site-packages/cr8tor/services/network_policy_manager.py
               && /app/.venv/bin/cr8tor operator
