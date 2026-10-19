@@ -327,10 +327,19 @@ class CISecretsManager:
                 self.generated_values[f"{secret_name}.{key}"] = generated
                 return generated
             elif value.startswith("{{ lookup_env(") and value.endswith(") }}"):
-                var_name = value[len("{{ lookup_env("):-len(") }}")].strip()
+                # {{ lookup_env(VAR) }} or {{ lookup_env(VAR, default) }}
+                args = value[len("{{ lookup_env("):-len(") }}")]
+                var_name, sep, default = args.partition(",")
+                var_name, default = var_name.strip(), default.strip()
                 env_value = os.environ.get(var_name)
                 if env_value is None:
-                    raise MissingEnvVarError(var_name, secret_name, key)
+                    if not sep:
+                        raise MissingEnvVarError(var_name, secret_name, key)
+                    console.print(
+                        f"[yellow]{var_name} not set, using default for "
+                        f"{secret_name}.{key}[/yellow]"
+                    )
+                    return default
                 return env_value
         return str(value)
 
