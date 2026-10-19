@@ -85,3 +85,36 @@ spec:
         id.token.claim: "false"
         access.token.claim: "true"
         user.info.claim: "false"
+---
+apiVersion: identity.k8tre.io/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: gitea
+  namespace: keycloak
+spec:
+  clientId: gitea
+  name: Gitea OIDC Client
+  secretRef:
+    name: gitea-oidc-credentials
+    key: client-secret
+  enabled: true
+  redirectUris:
+    - https://gitea.${DOMAIN}/user/oauth2/keycloak/callback
+  webOrigins:
+    - https://gitea.${DOMAIN}
+  defaultClientScopes:
+    - openid
+    - profile
+    - email
+    - groups
+  protocolMappers:
+    - name: groups
+      protocol: openid-connect
+      protocolMapper: oidc-group-membership-mapper
+      consentRequired: false
+      config:
+        full.path: "true"
+        id.token.claim: "true"
+        access.token.claim: "true"
+        claim.name: "groups"
+        userinfo.token.claim: "true"

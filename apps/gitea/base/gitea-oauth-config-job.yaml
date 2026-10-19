@@ -1,3 +1,8 @@
+# Gitea OAuth Configuration Job
+# Uses kubectl exec to run Gitea CLI inside the Gitea pod
+# This is required because Gitea does NOT expose /api/v1/admin/auth endpoint
+# Auth sources can ONLY be managed via Web UI or CLI (gitea admin auth add-oauth)
+# Reference: https://docs.gitea.com/administration/command-line#admin
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -6,9 +11,10 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "3" # After keycloak job
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   ttlSecondsAfterFinished: 300
+  backoffLimit: 3
   template:
     metadata:
       labels:
@@ -18,20 +24,8 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: config
-          image: curlimages/curl:8.6.0
+          image: alpine/k8s:1.28.3
           env:
-            - name: GITEA_URL
-              value: "http://gitea-http.gitea.svc.cluster.local:3000"
-            - name: GITEA_ADMIN_USER
-              valueFrom:
-                secretKeyRef:
-                  name: gitea-secret
-                  key: username
-            - name: GITEA_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: gitea-secret
-                  key: password
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -52,61 +46,122 @@ spec:
             - |
               set -e
 
-              echo "Waiting for Gitea API..."
+              echo "=== Gitea OAuth Config Job (CLI Method) ==="
+              echo "KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}"
+              echo "KEYCLOAK_REALM: ${KEYCLOAK_REALM}"
+              echo "OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}"
+              echo ""
+
+              # Wait for Gitea pod to be ready
+              echo "Waiting for Gitea pod..."
               for i in $(seq 1 60); do
-                if curl -fsS "${GITEA_URL}/api/v1/version" >/dev/null; then
-                  echo "✓ Gitea is ready"
-                  break
+                POD_NAME=$(kubectl get pods -n gitea -l app.kubernetes.io/name=gitea \
+                  -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+                if [ -n "$POD_NAME" ]; then
+                  POD_READY=$(kubectl get pod -n gitea "$POD_NAME" \
+                    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "")
+                  if [ "$POD_READY" = "True" ]; then
+                    echo "✓ Gitea pod $POD_NAME is ready"
+                    break
+                  fi
                 fi
+                echo "  Waiting for Gitea pod... ($i/60)"
                 sleep 5
               done
 
-              echo "Checking existing auth sources..."
-              AUTH_JSON=$(curl -fsS -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
-                "${GITEA_URL}/api/v1/admin/auth" || echo "[]")
-
-              if echo "$AUTH_JSON" | grep -q '"name":"keycloak"'; then
-                echo "✓ Keycloak OAuth source already exists"
-                exit 0
+              if [ -z "$POD_NAME" ] || [ "$POD_READY" != "True" ]; then
+                echo "✗ Gitea pod not ready after 5 minutes"
+                exit 1
               fi
 
               DISCOVERY_URL="${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/.well-known/openid-configuration"
-              echo "Creating Keycloak OAuth2 source..."
 
-              RESP=$(curl -s -w "\n%{http_code}" -X POST "${GITEA_URL}/api/v1/admin/auth" \
-                -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
-                -H "Content-Type: application/json" \
-                -d '{
-                  "type": "oauth2",
-                  "name": "keycloak",
-                  "cfg": {
-                    "provider": "openidConnect",
-                    "clientID": "'"${OIDC_CLIENT_ID}"'",
-                    "clientSecret": "'"${OIDC_CLIENT_SECRET}"'",
-                    "autoDiscoverURL": "'"${DISCOVERY_URL}"'",
-                    "scopes": ["openid","profile","email","groups"],
-                    "groupClaimName": "groups",
-                    "skipLocalTwoFA": false
-                  }
-                }')
+              # Wait for Keycloak OIDC endpoint
+              echo ""
+              echo "Waiting for Keycloak OIDC endpoint..."
+              for i in $(seq 1 60); do
+                if curl -fsSk "${DISCOVERY_URL}" >/dev/null 2>&1; then
+                  echo "✓ Keycloak OIDC endpoint is ready"
+                  break
+                fi
+                echo "  Waiting for Keycloak... ($i/60)"
+                sleep 5
+              done
 
-              CODE=$(echo "$RESP" | tail -n1)
-              BODY=$(echo "$RESP" | head -n-1)
-              if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
-                echo "✓ OAuth2 source created"
-              else
-                echo "✗ Failed (HTTP $CODE)"
-                echo "$BODY"
+              if ! curl -fsSk "${DISCOVERY_URL}" >/dev/null 2>&1; then
+                echo "Keycloak OIDC endpoint not ready"
                 exit 1
               fi
+
+              # Check if auth source already exists using Gitea CLI
+              echo ""
+              echo "Checking existing auth sources..."
+              AUTH_LIST=$(kubectl exec -n gitea "$POD_NAME" -c gitea -- \
+                gitea admin auth list 2>/dev/null || echo "")
+              
+              if echo "$AUTH_LIST" | grep -qi "keycloak"; then
+                echo "✓ Keycloak OAuth source already exists"
+                echo "$AUTH_LIST"
+                exit 0
+              fi
+
+              # Create OAuth source using Gitea CLI
+              # Reference: https://docs.gitea.com/administration/command-line#admin
+              echo ""
+              echo "Creating Keycloak OAuth2 source via Gitea CLI..."
+              kubectl exec -n gitea "$POD_NAME" -c gitea -- \
+                gitea admin auth add-oauth \
+                  --name "keycloak" \
+                  --provider "openidConnect" \
+                  --key "${OIDC_CLIENT_ID}" \
+                  --secret "${OIDC_CLIENT_SECRET}" \
+                  --auto-discover-url "${DISCOVERY_URL}" \
+                  --scopes "openid,profile,email,groups" \
+                  --group-claim-name "groups"
+
+              echo ""
+              echo "✓ OAuth2 source created successfully!"
+              
+              # Verify creation
+              echo ""
+              echo "Verifying auth source..."
+              kubectl exec -n gitea "$POD_NAME" -c gitea -- gitea admin auth list
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: { drop: ["ALL"] }
             runAsNonRoot: true
-            runAsUser: 65534
+            runAsUser: 1000
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: gitea-oauth-config
   namespace: gitea
+---
+# RBAC for kubectl exec into Gitea pod
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gitea-oauth-config
+  namespace: gitea
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitea-oauth-config
+  namespace: gitea
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gitea-oauth-config
+subjects:
+  - kind: ServiceAccount
+    name: gitea-oauth-config
+    namespace: gitea
