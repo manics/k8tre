@@ -27,6 +27,15 @@ gitea:
     username: admin            # ignored because existingSecret is set
     password: ""               # ignored because existingSecret is set
 
+  # Keycloak SSO source, created/updated by the chart's configure-gitea init container
+  oauth:
+    - name: keycloak
+      provider: openidConnect
+      existingSecret: gitea-oidc-credentials
+      autoDiscoverUrl: "https://keycloak.${DOMAIN}/realms/k8tre-app/.well-known/openid-configuration"
+      scopes: "openid,profile,email,groups"   # comma-separated: the gitea CLI splits on commas
+      groupClaimName: groups
+
   config:
     queue:
       TYPE: level    # use local disk-backed queue (default is redis) 
