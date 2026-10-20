@@ -6,7 +6,6 @@ resources:
   - certificate.yaml
   - gitea-external-secrets.yaml
   - gitea-db-external-secret.yaml
-  - gitea-oauth-config-job.yaml
   - postgres.yaml
   - network/cnpol-allow-from-ingress.yaml
   - network/cnpol-egress-core.yaml
