@@ -8,7 +8,7 @@ babel==2.18.0
     # via mkdocs-material
 backrefs==8.1
     # via mkdocs-material
-certifi==2026.7.22
+certifi==2026.10.18
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -34,7 +34,7 @@ jinja2==3.1.6
     #   mkdocs-macros-plugin
     #   mkdocs-material
     #   properdocs
-markdown==3.11
+markdown==3.11.1
     # via
     #   mkdocs
     #   mkdocs-material
@@ -77,7 +77,7 @@ pathspec==1.1.1
     #   mkdocs
     #   mkdocs-macros-plugin
     #   properdocs
-platformdirs==4.13.0
+platformdirs==4.13.5
     # via
     #   mkdocs-get-deps
     #   properdocs
@@ -85,7 +85,7 @@ properdocs==1.6.7
     # via mkdocs-redirects
 pygments==2.21.0
     # via mkdocs-material
-pymdown-extensions==12.2
+pymdown-extensions==12.3
     # via mkdocs-material
 python-dateutil==2.9.0.post0
     # via
