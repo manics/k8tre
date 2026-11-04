@@ -1,0 +1,22 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: trust-manager-webhook-ca
+  namespace: cert-manager
+spec:
+  secretName: trust-manager-tls
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  commonName: trust-manager-webhook.cert-manager.svc
+  isCA: true
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  dnsNames:
+    - trust-manager-webhook
+    - trust-manager-webhook.cert-manager
+    - trust-manager-webhook.cert-manager.svc
+  issuerRef:
+    name: k8tre-ca
+    kind: ClusterIssuer
+    group: cert-manager.io

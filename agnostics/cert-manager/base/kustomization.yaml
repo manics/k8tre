@@ -5,6 +5,7 @@ resources:
   - certificate.yaml
   - selfsigned-clusterissuer.yaml
   - trust-bundle.yaml
+  - trust-manager-cert.yaml
 
 helmCharts:
   - name: cert-manager
