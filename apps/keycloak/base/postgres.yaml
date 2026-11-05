@@ -36,3 +36,13 @@ spec:
         name: keycloak-db-secret
       postInitApplicationSQL:
         - create schema if not exists keycloak;
+
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/initdb: unconfined
+        container.apparmor.security.beta.kubernetes.io/postgres: unconfined
+    spec:
+      securityContext:
+        appArmorProfile:
+          type: Unconfined
